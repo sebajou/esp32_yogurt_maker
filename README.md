@@ -39,7 +39,7 @@ esptool.py --chip esp32c3 --port /dev/ttyACM0 write_flash -z 0x0 ESP32_GENERIC_C
 Load main.py file and lib folder and contant
 '''bash
 ampy -d 0.5 --port /dev/ttyACM0 put \main.py
-ampy -d 0.5 --port /dev/ttyACM0 put \lib
+ampy -d 0.5 --port /dev/ttyACM0 put \env\lib
 ampy -d 0.5 --port /dev/ttyACM0 ls
 '''
 
