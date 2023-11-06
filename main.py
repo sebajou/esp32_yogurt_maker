@@ -1,13 +1,12 @@
 # main.py -- put your code here!
 
 import machine, neopixel, time
-import adafruit_sht4x
-from adafruit_bme280 import basic as adafruit_bme280
+from lib import sht4x
+from lib import bme280_float as bme280
 import uasyncio
 
 button = machine.Pin(3, machine.Pin.IN, machine.Pin.PULL_UP)
-# button = machine.Pin(3, machine.Pin.IN)
-# button = machine.Pin(2, machine.Pin.ALT)
+relay = machine.Pin(19, Pin.OUT)
 led = neopixel.NeoPixel(machine.Pin(2, machine.Pin.OUT), 1)
 
 i2c = machine.I2C(0, sda=machine.Pin(1), scl=machine.Pin(0), freq=400000)
@@ -15,8 +14,8 @@ i2c = machine.I2C(0, sda=machine.Pin(1), scl=machine.Pin(0), freq=400000)
 
 async def main():
   print('here')
-  rht = adafruit_sht4x.SHT4x(i2c)
-  prt = adafruit_bme280.Adafruit_BME280(i2c)
+  sht = sht4x.SHT4X(i2c)
+  bme = bme280.BME280(i2c=i2c)
 
   while True:
     print('in the best loop')
@@ -29,11 +28,21 @@ async def main():
     led.write()
     time.sleep_ms(500)
 
-    temp, humidity = rht.measurements()
+    temp, humidity = sht.measurements
     print("Temp/Humidity: {}°C/{}%".format(temp, humidity))
-    temp, pressure = prt.measure()
-    print("Temp/Pressure: {}°C/{}Pa".format(temp, pressure))
+    tempbme, pressure, humiditybme = bme.read_compensated_data()
+    altitude = bme.altitude
+    print("Temp/Pressure/altitude/humidity: {}°C/{}Pa/{}m/{}%".format(tempbme, pressure, altitude, humiditybme))
     await uasyncio.sleep(1)
+
+    if temp > 42:
+      # Stop relay
+      relay.value(1)
+    elif temp < 40:
+      # Start relay
+      relay.value(0)
+    else:
+      continue
 
     if button.value() == 0:
       led.fill((99, 99, 5))
